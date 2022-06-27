@@ -22,6 +22,8 @@ namespace LSLCurves
         public LSLWindow()
         {
             InitializeComponent();
+            LSLWindowViewModel lSLWindowViewModel = new LSLWindowViewModel();
+            this.DataContext = lSLWindowViewModel;
         }
     }
 }

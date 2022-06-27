@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace LSLCurves.Services
+namespace LSLCurves
 {
     public class LSLLibrary
     {

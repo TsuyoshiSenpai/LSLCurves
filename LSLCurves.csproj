@@ -196,6 +196,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Services\IDataProvider.cs" />
+    <Compile Include="Services\IDataStorage.cs" />
     <Compile Include="Services\LSLLibrary.cs" />
     <Compile Include="Services\PropertyChangedHandler.cs" />
     <Compile Include="Services\RelayCommand.cs" />
