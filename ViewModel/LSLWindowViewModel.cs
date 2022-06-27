@@ -14,6 +14,11 @@ namespace LSLCurves
         private LSLLibrary.StreamInfo[] allStreams;
         private ObservableCollection<ComboBoxItem> availableStreams;
         private ComboBoxItem selectedAvailableStream;
+        private const int BufferLength = 2000;
+        private List<DataPoint[]> curves;
+        private bool isRunning;
+        private int channelsCount;
+        private LSLLibrary.StreamInlet inlet;
 
         #region PublicProperties
         public ObservableCollection<ComboBoxItem> AvailableStreams
@@ -26,6 +31,17 @@ namespace LSLCurves
             get { return selectedAvailableStream; }
             set { selectedAvailableStream = value; OnPropertyChanged(); }
         }
+        public List<DataPoint[]> Curves
+        {
+            get { return curves; }
+            set { curves = value; OnPropertyChanged(); }
+        }
+        public bool IsRunning
+        {
+            get { return isRunning; }
+            set { isRunning = value; OnPropertyChanged(); }
+        }
+        
         #endregion
 
         public LSLWindowViewModel()
