@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OxyPlot;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,16 +14,14 @@ namespace LSLCurves
     /// </summary>
     public interface IDataProvider
     {
-        async Task GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
-        {
-            allStreams = await Task.Run(() => LSLLibrary.resolve_streams());
-            var selectedStream = new ComboBoxItem { Content = "<--Select-->" };
-            selectedAvailableStream = selectedStream;
-            availableStreams.Add(selectedStream);
-            foreach (var stream in allStreams)
-            {
-                availableStreams.Add(new ComboBoxItem { Content = stream.name() });
-            }
-        }
+        /// <summary>
+        /// Получение названия потока
+        /// </summary>
+        /// <param name="allStreams">Список всех потоков</param>
+        /// <param name="availableStreams">Доступные для выбора потоки</param>
+        /// <param name="selectedAvailableStream">Выбранный поток</param>
+        /// <returns></returns>
+        Task GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream);
+        void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves);
     }
 }

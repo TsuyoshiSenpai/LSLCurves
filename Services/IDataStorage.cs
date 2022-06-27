@@ -11,6 +11,6 @@ namespace LSLCurves
     /// </summary>
     public interface IDataStorage
     {
-
+        
     }
 }
