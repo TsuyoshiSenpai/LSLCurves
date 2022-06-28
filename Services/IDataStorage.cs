@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace LSLCurves
 {
     /// <summary>
-    /// Дает возможность сохранять и загружать данные ЭЭГ
+    /// Дает возможность сохранять и загружать данные ЭЭГ.
     /// </summary>
     public interface IDataStorage
     {

@@ -1,4 +1,5 @@
 ﻿using OxyPlot;
+using OxyPlot.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace LSLCurves
 {
@@ -14,22 +17,42 @@ namespace LSLCurves
         private LSLLibrary.StreamInfo[] allStreams;
         private ObservableCollection<ComboBoxItem> availableStreams;
         private ComboBoxItem selectedAvailableStream;
-        private const int BufferLength = 2000;
+        private const int bufferLength = 2000;
+        private List<Plot> plots;
+        private bool startIsEnabled;
+        private string pathToSelectedFolder;
         private List<DataPoint[]> curves;
         private bool isRunning;
         private int channelsCount;
+        private readonly DispatcherTimer timer = new DispatcherTimer();
         private LSLLibrary.StreamInlet inlet;
 
         #region PublicProperties
+        public FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
         public ObservableCollection<ComboBoxItem> AvailableStreams
         {
             get { return availableStreams; }
             set { availableStreams = value; OnPropertyChanged(); }
         }
+        public string PathToSelectedFolder
+        {
+            get { return pathToSelectedFolder; }
+            set { pathToSelectedFolder = value; OnPropertyChanged(); }
+        }
+        public bool StartIsEnabled
+        {
+            get { return startIsEnabled; }
+            set { startIsEnabled = value; OnPropertyChanged(); }
+        }
         public ComboBoxItem SelectedAvailableStream
         {
             get { return selectedAvailableStream; }
             set { selectedAvailableStream = value; OnPropertyChanged(); }
+        }
+        public List<Plot> Plots
+        {
+            get { return plots; }
+            set { plots = value; OnPropertyChanged(); }
         }
         public List<DataPoint[]> Curves
         {
@@ -41,14 +64,37 @@ namespace LSLCurves
             get { return isRunning; }
             set { isRunning = value; OnPropertyChanged(); }
         }
-        
+
+        #endregion
+
+        #region Commands
+        public RelayCommand UpdateCommand
+        { get; set; }
+        public RelayCommand StartReadCommand
+        { get; set; }
+        public RelayCommand StopCommand
+        { get; set; }
+        public RelayCommand SelectFolderCommand
+        { get; set; }
         #endregion
 
         public LSLWindowViewModel()
         {
+            IDataProvider dataProvider = new LSLWindowViewModel();
             AvailableStreams = new ObservableCollection<ComboBoxItem>();
+            Plots = new List<Plot>();
+            UpdateCommand = new RelayCommand(o => dataProvider.UpdateInfo(Plots));
+            StopCommand = new RelayCommand(o => dataProvider.StopReading(IsRunning, StartIsEnabled, timer));
+            SelectFolderCommand = new RelayCommand(o => SelectFolder());
         }
 
+        #region Methods
+        public void SelectFolder()
+        {
+            folderBrowserDialog.ShowDialog();
+            PathToSelectedFolder = folderBrowserDialog.SelectedPath;
+        }
+        #endregion
 
         #region IDataProvider
         async Task IDataProvider.GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
@@ -89,6 +135,21 @@ namespace LSLCurves
                         }
                 }
             }
+        }
+
+        void IDataProvider.UpdateInfo(List<Plot> plots)
+        {
+            foreach (var plot in plots)
+            {
+                plot.InvalidatePlot();
+            }
+        }
+        void IDataProvider.StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer)
+        {
+            startIsEnabled = true;
+            timer.Stop();
+            timer.IsEnabled = false;
+            isRunning = false;
         }
         #endregion
     }
