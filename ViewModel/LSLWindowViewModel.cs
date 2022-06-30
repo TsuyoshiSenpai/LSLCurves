@@ -1,4 +1,5 @@
 ﻿using OxyPlot;
+using OxyPlot.Axes;
 using OxyPlot.Wpf;
 using System;
 using System.Collections.Generic;
@@ -6,33 +7,49 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace LSLCurves
 {
-    class LSLWindowViewModel : PropertyChangedHandler, IDataStorage, IDataProvider
+    public class LSLWindowViewModel : PropertyChangedHandler, IDataStorage, IDataProvider
     {
-        private LSLLibrary.StreamInfo[] allStreams;
         private ObservableCollection<ComboBoxItem> availableStreams;
+        private int selectedStreamIndex;
         private ComboBoxItem selectedAvailableStream;
         private const int bufferLength = 2000;
         private List<Plot> plots;
         private bool startIsEnabled;
         private string pathToSelectedFolder;
+        private bool saveIsEnabled;
         private List<DataPoint[]> curves;
         private bool isRunning;
-        private int channelsCount;
         private readonly DispatcherTimer timer = new DispatcherTimer();
-        private LSLLibrary.StreamInlet inlet;
 
         #region PublicProperties
-        public FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+        public int channelsCount;
+        public LSLLibrary.StreamInfo[] allStreams;
+        public LSLLibrary.StreamInlet inlet;
+        public LSLWindow Window { get; set; }
+        public FolderBrowserDialog FolderBrowserDialog = new FolderBrowserDialog();
         public ObservableCollection<ComboBoxItem> AvailableStreams
         {
             get { return availableStreams; }
             set { availableStreams = value; OnPropertyChanged(); }
+        }
+        public bool SaveIsEnabled
+        {
+            get { return saveIsEnabled; }
+            set { saveIsEnabled = value; OnPropertyChanged(); }
+        }
+        public int SelectedStreamIndex
+        {
+            get { return selectedStreamIndex; }
+            set { selectedStreamIndex = value; OnPropertyChanged(); }
         }
         public string PathToSelectedFolder
         {
@@ -70,7 +87,7 @@ namespace LSLCurves
         #region Commands
         public RelayCommand UpdateCommand
         { get; set; }
-        public RelayCommand StartReadCommand
+        public RelayCommand StartCommand
         { get; set; }
         public RelayCommand StopCommand
         { get; set; }
@@ -83,16 +100,28 @@ namespace LSLCurves
             IDataProvider dataProvider = new LSLWindowViewModel();
             AvailableStreams = new ObservableCollection<ComboBoxItem>();
             Plots = new List<Plot>();
+            dataProvider.GetStream(allStreams, AvailableStreams, SelectedAvailableStream);
             UpdateCommand = new RelayCommand(o => dataProvider.UpdateInfo(Plots));
             StopCommand = new RelayCommand(o => dataProvider.StopReading(IsRunning, StartIsEnabled, timer));
+            StartCommand = new RelayCommand(o => dataProvider.StartReading(timer, StartIsEnabled, IsRunning, dataProvider));
             SelectFolderCommand = new RelayCommand(o => SelectFolder());
         }
 
         #region Methods
         public void SelectFolder()
         {
-            folderBrowserDialog.ShowDialog();
-            PathToSelectedFolder = folderBrowserDialog.SelectedPath;
+            FolderBrowserDialog.ShowDialog();
+            PathToSelectedFolder = FolderBrowserDialog.SelectedPath;
+        }
+        public void PrepareCurves()
+        {
+            Curves = new List<DataPoint[]>();
+            for (var i = 0; i < channelsCount; i++)
+            {
+                Curves.Add(new DataPoint[bufferLength]);
+                for (var j = 0; j < Curves[i].Length; j++)
+                    Curves[i][j] = new DataPoint(j, 0);
+            }
         }
         #endregion
 
@@ -150,6 +179,22 @@ namespace LSLCurves
             timer.Stop();
             timer.IsEnabled = false;
             isRunning = false;
+        }
+        async void IDataProvider.StartReading(DispatcherTimer timer, bool startEnabled, bool isRunning, IDataProvider dataProvider)
+        {
+            startEnabled = false;
+            isRunning = true;
+            timer.Interval = new TimeSpan(0, 0, 0, 0, 50);
+            timer.IsEnabled = true;
+            timer.Tick += (o, args) =>
+            {
+                dataProvider.UpdateInfo(Plots);
+            };
+            timer.Start();
+
+            if (!Window.Prepare()) return;
+            await Task.Run(() => dataProvider.ReadStream(isRunning, channelsCount, inlet, bufferLength, Curves));
+
         }
         #endregion
     }

@@ -35,5 +35,6 @@ namespace LSLCurves
         void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves);
         void UpdateInfo(List<Plot> plots);
         void StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer);
+        void StartReading(DispatcherTimer timer, bool startEnabled, bool isRunning, IDataProvider dataProvider);
     }
 }

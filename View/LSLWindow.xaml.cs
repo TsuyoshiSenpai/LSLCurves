@@ -1,4 +1,6 @@
-﻿using System;
+﻿using OxyPlot.Axes;
+using OxyPlot.Wpf;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace LSLCurves
 {
@@ -22,8 +25,70 @@ namespace LSLCurves
         public LSLWindow()
         {
             InitializeComponent();
-            LSLWindowViewModel lSLWindowViewModel = new LSLWindowViewModel();
-            this.DataContext = lSLWindowViewModel;
+            LSLWindowViewModel model = new LSLWindowViewModel();
+            this.DataContext = model;
+        }
+        public bool Prepare()
+        {
+            var vm = (LSLWindowViewModel)this.DataContext;
+            if (vm.SelectedStreamIndex - 1 < 0) return false;
+            vm.inlet = new LSLLibrary.StreamInlet(vm.allStreams[vm.SelectedStreamIndex - 1]);
+            tbXmlInfo.Text = vm.inlet.info().as_xml();
+
+            var xml = XElement.Parse(vm.inlet.info().as_xml());
+            var channels = xml.Element("desc").Element("channels").Elements("channel").ToList();
+
+            vm.channelsCount = vm.inlet.info().channel_count();
+            CurvesGrid.Children.Clear();
+            CurvesGrid.RowDefinitions.Clear();
+            CurvesGrid.ColumnDefinitions.Clear();
+            CurvesGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            CurvesGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            for (var i = 0; i < vm.channelsCount; i++)
+            {
+                CurvesGrid.RowDefinitions.Add(new RowDefinition());
+
+                var sp = new StackPanel() { Orientation = (System.Windows.Controls.Orientation)System.Windows.Forms.Orientation.Horizontal };
+                var sp2 = new StackPanel() { VerticalAlignment = System.Windows.VerticalAlignment.Center };
+                var label = new TextBlock() { Text = channels[i].Element("label").Value };
+                var type = new TextBlock() { Text = channels[i].Element("type").Value };
+                sp2.Children.Add(label);
+                sp2.Children.Add(type);
+                sp.Children.Add(sp2);
+                sp.SetValue(Grid.RowProperty, i);
+
+                var plot = new Plot() { Margin = new Thickness(0, -2, 0, -5) };
+
+                //убираем оси
+                plot.Axes.Add(new OxyPlot.Wpf.LinearAxis()
+                {
+                    Position = AxisPosition.Bottom,
+                    IsAxisVisible = false,
+                });
+                plot.Axes.Add(new OxyPlot.Wpf.LinearAxis()
+                {
+                    Position = AxisPosition.Left,
+                    IsAxisVisible = false
+                });
+                plot.SetValue(Grid.RowProperty, i);
+                plot.SetValue(Grid.ColumnProperty, 1);
+                var ls = new LineSeries();
+                var myBinding = new System.Windows.Data.Binding
+                {
+                    ElementName = "Root",
+                    Path = new PropertyPath("Curves[" + i + "]"),
+                    Mode = BindingMode.TwoWay,
+                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                };
+                BindingOperations.SetBinding(ls, LineSeries.ItemsSourceProperty, myBinding);
+                plot.Series.Add(ls);
+                vm.Plots.Add(plot);
+
+                CurvesGrid.Children.Add(sp);
+                CurvesGrid.Children.Add(plot);
+            }
+            vm.PrepareCurves();
+            return true;
         }
     }
 }
