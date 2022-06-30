@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LSLCurves" 
-        d:DataContext="{d:DesignInstance Type=local:LSLWindowViewModel}"
         mc:Ignorable="d"
         Title="LSLWindow" Height="500" Width="800">
+    <Window.DataContext>
+        <local:LSLWindowViewModel/>
+    </Window.DataContext>
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
