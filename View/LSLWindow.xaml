@@ -26,7 +26,7 @@
                 <TextBlock Margin="10">Stream:</TextBlock>
                 <ComboBox Margin="10" MinWidth="150" SelectedIndex="{Binding SelectedStreamIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding AvailableStreams, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedAvailableStream, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="StreamComboBox"></ComboBox>
                 <Button Margin="10" Padding="5 0" Command="{Binding UpdateCommand}">Update</Button>
-                <Button Margin="10" Padding="5 0" x:Name="btStart" IsEnabled="{Binding StartIsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Start read</Button>
+                <Button Margin="10" Padding="5 0" x:Name="btStart" Command="{Binding StartCommand}" IsEnabled="{Binding StartIsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Start read</Button>
                 <Button Margin="10" Padding="5 0" x:Name="btStop" Command="{Binding StopCommand}">Stop</Button>
             </StackPanel>
             <TabControl Grid.Row="1">

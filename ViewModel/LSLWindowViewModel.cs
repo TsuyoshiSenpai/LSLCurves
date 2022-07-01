@@ -23,7 +23,7 @@ namespace LSLCurves
         private ComboBoxItem selectedAvailableStream;
         private const int bufferLength = 2000;
         private List<Plot> plots;
-        private bool startIsEnabled;
+        private bool startIsEnabled = true;
         private string pathToSelectedFolder;
         private bool saveIsEnabled;
         private List<DataPoint[]> curves;
@@ -174,7 +174,7 @@ namespace LSLCurves
         }
         public void StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer)
         {
-            startIsEnabled = true;
+            startEnabled = true;
             timer.Stop();
             timer.IsEnabled = false;
             isRunning = false;
