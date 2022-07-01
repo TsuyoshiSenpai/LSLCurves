@@ -97,13 +97,12 @@ namespace LSLCurves
 
         public LSLWindowViewModel()
         {
-            IDataProvider dataProvider = new LSLWindowViewModel();
             AvailableStreams = new ObservableCollection<ComboBoxItem>();
             Plots = new List<Plot>();
-            dataProvider.GetStream(allStreams, AvailableStreams, SelectedAvailableStream);
-            UpdateCommand = new RelayCommand(o => dataProvider.UpdateInfo(Plots));
-            StopCommand = new RelayCommand(o => dataProvider.StopReading(IsRunning, StartIsEnabled, timer));
-            StartCommand = new RelayCommand(o => dataProvider.StartReading(timer, StartIsEnabled, IsRunning, dataProvider));
+            GetStream(allStreams, AvailableStreams, SelectedAvailableStream);
+            UpdateCommand = new RelayCommand(o => UpdateInfo(Plots));
+            StopCommand = new RelayCommand(o => StopReading(IsRunning, StartIsEnabled, timer));
+            StartCommand = new RelayCommand(o => StartReading(timer, StartIsEnabled, IsRunning));
             SelectFolderCommand = new RelayCommand(o => SelectFolder());
         }
 
@@ -126,7 +125,7 @@ namespace LSLCurves
         #endregion
 
         #region IDataProvider
-        async Task IDataProvider.GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
+        public async Task GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
         {
             allStreams = await Task.Run(() => LSLLibrary.resolve_streams());
             var selectedStream = new ComboBoxItem { Content = "<--Select-->" };
@@ -138,7 +137,7 @@ namespace LSLCurves
             }
         }
 
-        void IDataProvider.ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves)
+        public void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves)
         {
             var index = 0;
             var lslBuffLen = 4096;
@@ -166,21 +165,21 @@ namespace LSLCurves
             }
         }
 
-        void IDataProvider.UpdateInfo(List<Plot> plots)
+        public void UpdateInfo(List<Plot> plots)
         {
             foreach (var plot in plots)
             {
                 plot.InvalidatePlot();
             }
         }
-        void IDataProvider.StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer)
+        public void StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer)
         {
             startIsEnabled = true;
             timer.Stop();
             timer.IsEnabled = false;
             isRunning = false;
         }
-        async void IDataProvider.StartReading(DispatcherTimer timer, bool startEnabled, bool isRunning, IDataProvider dataProvider)
+        public async void StartReading(DispatcherTimer timer, bool startEnabled, bool isRunning)
         {
             startEnabled = false;
             isRunning = true;
@@ -188,12 +187,12 @@ namespace LSLCurves
             timer.IsEnabled = true;
             timer.Tick += (o, args) =>
             {
-                dataProvider.UpdateInfo(Plots);
+                UpdateInfo(Plots);
             };
             timer.Start();
 
             if (!Window.Prepare()) return;
-            await Task.Run(() => dataProvider.ReadStream(isRunning, channelsCount, inlet, bufferLength, Curves));
+            await Task.Run(() => ReadStream(isRunning, channelsCount, inlet, bufferLength, Curves));
 
         }
         #endregion
