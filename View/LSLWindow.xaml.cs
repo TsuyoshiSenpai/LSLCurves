@@ -28,10 +28,13 @@ namespace LSLCurves
             LSLWindowViewModel model = new LSLWindowViewModel();
             this.DataContext = model;
         }
-        public bool Prepare()
+        public void Prepare()
         {
             var vm = (LSLWindowViewModel)this.DataContext;
-            if (vm.SelectedStreamIndex - 1 < 0) return false;
+            if (vm.SelectedStreamIndex - 1 < 0)
+            { 
+                vm.PrepareResult = false;
+            }
             vm.inlet = new LSLLibrary.StreamInlet(vm.allStreams[vm.SelectedStreamIndex - 1]);
             tbXmlInfo.Text = vm.inlet.info().as_xml();
 
@@ -88,7 +91,12 @@ namespace LSLCurves
                 CurvesGrid.Children.Add(plot);
             }
             vm.PrepareCurves();
-            return true;
+            vm.PrepareResult = true;
+        }
+
+        private void btStart_Click(object sender, RoutedEventArgs e)
+        {
+            Prepare();
         }
     }
 }

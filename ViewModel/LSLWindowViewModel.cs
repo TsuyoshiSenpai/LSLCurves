@@ -28,14 +28,19 @@ namespace LSLCurves
         private bool saveIsEnabled;
         private List<DataPoint[]> curves;
         private bool isRunning;
+        private bool prepareResult;
         private readonly DispatcherTimer timer = new DispatcherTimer();
 
         #region PublicProperties
         public int channelsCount;
         public LSLLibrary.StreamInfo[] allStreams;
         public LSLLibrary.StreamInlet inlet;
-        public LSLWindow Window { get; set; }
         public FolderBrowserDialog FolderBrowserDialog = new FolderBrowserDialog();
+        public bool PrepareResult
+        {
+            get { return prepareResult; }
+            set { prepareResult = value; OnPropertyChanged(); }
+        }
         public ObservableCollection<ComboBoxItem> AvailableStreams
         {
             get { return availableStreams; }
@@ -190,10 +195,9 @@ namespace LSLCurves
                 UpdateInfo(Plots);
             };
             timer.Start();
-
-            if (!Window.Prepare()) return;
+            
+            if (!PrepareResult) return;
             await Task.Run(() => ReadStream(isRunning, channelsCount, inlet, bufferLength, Curves));
-
         }
         #endregion
     }
