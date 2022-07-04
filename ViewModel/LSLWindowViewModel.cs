@@ -104,7 +104,7 @@ namespace LSLCurves
         {
             AvailableStreams = new ObservableCollection<ComboBoxItem>();
             Plots = new List<Plot>();
-            GetStream(allStreams, AvailableStreams, SelectedAvailableStream);
+            GetStream(AvailableStreams, SelectedAvailableStream);
             UpdateCommand = new RelayCommand(o => UpdateInfo(Plots));
             StopCommand = new RelayCommand(o => StopReading(IsRunning, StartIsEnabled, timer));
             StartCommand = new RelayCommand(o => StartReading(timer, StartIsEnabled, IsRunning));
@@ -130,7 +130,7 @@ namespace LSLCurves
         #endregion
 
         #region IDataProvider
-        public async Task GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
+        public async Task GetStream(ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream)
         {
             allStreams = await Task.Run(() => LSLLibrary.resolve_streams());
             var selectedStream = new ComboBoxItem { Content = "<--Select-->" };
@@ -142,7 +142,7 @@ namespace LSLCurves
             }
         }
 
-        public void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves)
+        public void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength)
         {
             var index = 0;
             var lslBuffLen = 4096;
@@ -157,14 +157,14 @@ namespace LSLCurves
                 {
                     for (var c = 0; c < channelsCount; c++)
                     {
-                        curves[c][index % bufferLength] = new DataPoint((index % bufferLength), buffer[s, c]);
+                        Curves[c][index % bufferLength] = new DataPoint((index % bufferLength), buffer[s, c]);
                     }
                     index++;
                     if ((index % bufferLength) == 0)
                         for (var c = 0; c < channelsCount; c++)
                         {
                             for (var i = 0; i < bufferLength; i++)
-                                curves[c][i] = new DataPoint(i, 0);
+                                Curves[c][i] = new DataPoint(i, 0);
                         }
                 }
             }
@@ -197,7 +197,7 @@ namespace LSLCurves
             timer.Start();
             
             if (!PrepareResult) return;
-            await Task.Run(() => ReadStream(isRunning, channelsCount, inlet, bufferLength, Curves));
+            await Task.Run(() => ReadStream(isRunning, channelsCount, inlet, bufferLength));
         }
         #endregion
     }

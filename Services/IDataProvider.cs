@@ -23,7 +23,7 @@ namespace LSLCurves
         /// <param name="availableStreams">Доступные для выбора потоки.</param>
         /// <param name="selectedAvailableStream">Выбранный поток.</param>
         /// <returns></returns>
-        Task GetStream(LSLLibrary.StreamInfo[] allStreams, ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream);
+        Task GetStream(ObservableCollection<ComboBoxItem> availableStreams, ComboBoxItem selectedAvailableStream);
         /// <summary>
         /// Чтение данных кривых.
         /// </summary>
@@ -32,7 +32,7 @@ namespace LSLCurves
         /// <param name="inlet"></param>
         /// <param name="bufferLength">Размер буфера.</param>
         /// <param name="curves">Массив с точками.</param>
-        void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength, List<DataPoint[]> curves);
+        void ReadStream(bool isRunning, int channelsCount, LSLLibrary.StreamInlet inlet, int bufferLength);
         void UpdateInfo(List<Plot> plots);
         void StopReading(bool isRunning, bool startEnabled, DispatcherTimer timer);
         void StartReading(DispatcherTimer timer, bool startEnabled, bool isRunning);
