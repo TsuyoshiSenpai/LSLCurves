@@ -78,7 +78,6 @@ namespace LSLCurves
                 var ls = new LineSeries();
                 var myBinding = new System.Windows.Data.Binding
                 {
-                    ElementName = "Root",
                     Path = new PropertyPath("Curves[" + i + "]"),
                     Mode = BindingMode.TwoWay,
                     UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
